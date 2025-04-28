@@ -1,0 +1,68 @@
+Run the legacy network (from containernet folder):
+
+sudo -E env PATH=$PATH python3 custom/topo_legacy.py
+
+Question 1 : Check the python code topo legacy.py used to generate the network.
+Why do you think that the RTTs obtained in the pings are close to 20 ms ? Is this consistent
+with the routing tables in the devices ?
+
+-> As we can see, the delay for each link between the routers is set to 10ms :
+    info( '*** Add links\n')
+        r3r1 = {'bw':1,'delay':'10ms'}
+        net.addLink(r3, r1, intfName1='r3-eth1',intfName2='r1-eth1', cls=TCLink , **r3r1)
+        r1r2 = {'bw':5,'delay':'10ms'}
+        net.addLink(r1, r2, intfName1='r1-eth0',intfName2='r2-eth0', cls=TCLink , **r1r2)
+        r2r3 = {'bw':5,'delay':'10ms'}
+        net.addLink(r2, r3, intfName1='r2-eth1',intfName2='r3-eth0', cls=TCLink , **r2r3)
+    Therefore, values close to 20ms returned by the ping indicate that a single link is followed twice (forward and backward, as these are RTT values). 
+    We can say that the client reaches the server through the r1 - r3 1mbps link, otherwise values would not be able to reach under 40ms ((10ms + 10ms) * 2)
+    in the case the connection used r1-r2 then r2-r3 links.
+    It is consistent with the routing tables as the r1-r3 link is the default link for communication of both r1 and r3, 
+    which are always the first and last component of the connection before or after client and server : 
+            r1.cmd("route add default gw 10.0.3.3 r1-eth1")
+            r3.cmd("route add default gw 10.0.3.1 r3-eth1")
+
+    
+Question 2 : Do as indicated above and plot with the Python notebook : the curves showing
+the video rate and the buer status. Which is the actual end-to-end bandwidth seen by the
+client ? Is this consistent with the routing conguration ? What are the consequences over
+the video coding rate selected by the DASH adaptation algorithm ?
+
+-> see tp2_q2_both_plots.png
+As we can see, the bitrate oscillates between 0 and 1.5 Mbps and is not stable. If it was always sufficient, the buffer size
+would not change, but here the video is paused several times. We can estimate visually the actuel end-to-end
+bandwidth is in average 0.3 Mbps. Each time it reaches 1.5Mbps it instantly drops, meaning this is too high a bitrate for the connection.
+Yes it is consistent with the routing configuration because as we have seen the link used between client and server is the r1 - r3 link which
+ is limited to 1Mbps, therefore a bandwidth of 1.5Mbps cannot actually be achieved. We can see a "step" pattern corresponding to the DASH
+ adaptation algorithm changing the selected segment quality (coding rate) for the next segment each time the bitrate is not adequate for the 
+ bandwidth (steps seem located around 0.165 Mbps, 0,390 Mbps, 0.590 Mbps  and 1.5 Mbps).
+    
+
+Question 3 : How do the video quality and the buered video time vary depending on the
+FTP transfer ? Does adaptive streaming allow attaining the maximal quality when the FTP
+transfer is active ? Why ? Hint : check this paper ?
+
+On the new plots, we can see clear red background roughly between 20s and 150s, corresponding to the behavior described 
+for the FTP file transfer lauched from script_ftp.sh (knowing the transfer starts around 20s and ends around 110s). At 
+this time, DASH video playback is frozen due to unsufficient available bandwidth. At the same time, we see the buffer 
+struggles to build up after 20s before staying empty on the 60-150s time period. The FTP transfer using TCP congestion
+control maximizes its bandwidth used while DASH, in competition with it, lowers the video quality to maintain
+playback. The file transfer can then take even more space until the point where DASH doesn't even have enough
+available bandwidth to maintain playback at the lowest quality. Once the transfer is stopped, we observe the same
+DASH behavior as before, which confirms the file transfer was the cause. Therefore no, adaptive streaming
+doesn't allow attaining the maximal quality when FTP transfer is active, and it can even prevent 
+attaining the minimal quality.
+
+Question 4 : How would you improve the video quality of the adaptive streaming in such
+a case ? Hint : as network engineer you cannot change the application protocols, that are
+standards, but you can introduce changes in your network conguration. Implement your
+solution and test it
+
+I would want to differentiate between the two types of traffic (basic FTP and DASH) and direct the 
+FTP traffic on the 1Mbps link while directing the DASH exchange on the 5Mbps link (going through r2).
+As legacy networking can't and we're exchanging between the same client and server, my solution will be
+to add a new secondary IP and server dedicated to DASH exchange and use it for a secondary routing overriding the default 
+one, enabling to use both routes and attain maximal quality for the video playback.
+
+
+
