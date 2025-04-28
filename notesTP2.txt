@@ -70,19 +70,30 @@ As legacy networking can't and we're exchanging between the same client and serv
 to add a new secondary IP and server dedicated to DASH exchange and use it for a secondary routing overriding the default 
 one, enabling to use both routes and attain maximal quality for the video playback.
 
--> see new topo_legacy.py code and tp2_q4_both_plots. 
-We request the DASH playback from 172.16.1.2 (new secondary IP server address) and ensure traffic going 
-to and coming from (using PBR) 172.16.1.2 goes through r2 while default traffic goes through r1r3 link.
+-> see new topo_legacy.py code.
+I used static IP routing using the resources given in the lab.
+We now request the DASH playback from 172.16.1.2 (new secondary IP server address) and ensure traffic going 
+to and coming from (using PBR) 172.16.1.2 goes through r2 while default traffic goes through r1r3 link as before.
 Redirection through the 5 Mbps link works, we obtained rtt values while pinging 172.16.1.2 from client above 40ms, ensuring both ways
 of traffic go through r2 with 4*10ms delay. Pinging 172.16.1.1 still returns values above 20m so default traffic takes the same route as before.
+
+Question 5 : What happens now with the video quality ? You are not anymore a networking
+engineer. You are completely free to propose a solution, even if it is not realistic with the
+current state of the art. Could you propose a better solution ?
+
+-> see tp2_q4_both_plots. 
 New plots were obtained with this configuration, and we see first the video quality requested is much higher, oscillating between 3.9Mbps and 
 1.4 Mbps which attests available bandwidth is higher than before (no more video pausing or very little, the background is continuously green),
 and second that there seems not to be any impact from the ftp transfer which was launched at the beginning of the DASH exchange, even though buffer
 build up seems to struggle a bit more during the first 100ms, but it might be my virtual machine struggling with the multiple processes too.
 We can conclude the separation is effective and seems to work as intended.
 
-Question 5 : What happens now with the video quality ? You are not anymore a networking
-engineer. You are completely free to propose a solution, even if it is not realistic with the
-current state of the art. Could you propose a better solution ?
+We can wonder why quality is not stable at 3.9Mbps but once again it could be my virtual machine struggling.
+
+This solution works but is really specific and might not be the best approach as it requires the user to use a different IP address
+when requesting a DASH media. A better solution, ignoring current restrictions, would be to be able to treat differently DASH or 
+high priority traffic (such as with QoS), and for instance reserve a bandwidth equal to the one necessary for a given quality 
+(requested by the user or the highest one) given it is available while being "fair" as for network ressource sharing.
+This would also allow more flexibility as it might be more easily reassignable and scalable. 
 
 
