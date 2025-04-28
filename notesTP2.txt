@@ -1,6 +1,11 @@
 Run the legacy network (from containernet folder):
 
-sudo -E env PATH=$PATH python3 custom/topo_legacy.py
+    sudo -E env PATH=$PATH python3 custom/topo_legacy.py
+
+Dash :
+
+    python3 AStream-master/dist/client/dash_client.py -m http://172.16.1.2/media/BigBuckBunny/4sec/BigBuckBunny_4s.mpd -p 'basic' -d
+
 
 Question 1 : Check the python code topo legacy.py used to generate the network.
 Why do you think that the RTTs obtained in the pings are close to 20 ms ? Is this consistent
@@ -42,6 +47,7 @@ Question 3 : How do the video quality and the buered video time vary dependin
 FTP transfer ? Does adaptive streaming allow attaining the maximal quality when the FTP
 transfer is active ? Why ? Hint : check this paper ?
 
+-> see tp2_q3_both_plots
 On the new plots, we can see clear red background roughly between 20s and 150s, corresponding to the behavior described 
 for the FTP file transfer lauched from script_ftp.sh (knowing the transfer starts around 20s and ends around 110s). At 
 this time, DASH video playback is frozen due to unsufficient available bandwidth. At the same time, we see the buffer 
@@ -64,5 +70,19 @@ As legacy networking can't and we're exchanging between the same client and serv
 to add a new secondary IP and server dedicated to DASH exchange and use it for a secondary routing overriding the default 
 one, enabling to use both routes and attain maximal quality for the video playback.
 
+-> see new topo_legacy.py code and tp2_q4_both_plots. 
+We request the DASH playback from 172.16.1.2 (new secondary IP server address) and ensure traffic going 
+to and coming from (using PBR) 172.16.1.2 goes through r2 while default traffic goes through r1r3 link.
+Redirection through the 5 Mbps link works, we obtained rtt values while pinging 172.16.1.2 from client above 40ms, ensuring both ways
+of traffic go through r2 with 4*10ms delay. Pinging 172.16.1.1 still returns values above 20m so default traffic takes the same route as before.
+New plots were obtained with this configuration, and we see first the video quality requested is much higher, oscillating between 3.9Mbps and 
+1.4 Mbps which attests available bandwidth is higher than before (no more video pausing or very little, the background is continuously green),
+and second that there seems not to be any impact from the ftp transfer which was launched at the beginning of the DASH exchange, even though buffer
+build up seems to struggle a bit more during the first 100ms, but it might be my virtual machine struggling with the multiple processes too.
+We can conclude the separation is effective and seems to work as intended.
+
+Question 5 : What happens now with the video quality ? You are not anymore a networking
+engineer. You are completely free to propose a solution, even if it is not realistic with the
+current state of the art. Could you propose a better solution ?
 
 
