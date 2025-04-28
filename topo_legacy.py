@@ -95,8 +95,9 @@ def myNetwork():
     r3.cmd("route add default gw 10.0.3.1 r3-eth1")
     r3.cmd("echo 1 >/proc/sys/net/ipv4/ip_forward")
 
-    r3.cmd("ip addr add 172.16.1.253/24 brd + dev r3-eth3") #ajout d'une interface pour l'IP secondaire DASH
-    r3.cmd("ip route add 172.16.1.2 via 172.16.1.253 dev r3-eth3") #connection r3-serveur sur IP DASH
+    r3.cmd("ip addr add 172.16.1.253/24 dev r3-eth3") #ajout d'une interface pour l'IP secondaire DASH
+    r3.cmd("ip link set r3-eth3 up")
+    #r3.cmd("ip route add 172.16.1.2 via 172.16.1.253 dev r3-eth3") #connection r3-serveur sur IP DASH
     #r3.cmd("ip rule add from 172.16.1.2 table 200") #Ajout d'une rèlge pour diriger le trafic DASH
     #r3.cmd("ip route add 172.16.0.1/24 via 10.0.2.3 dev r3-eth0 table 200") #Ajout d'une table pour PBR
 
