@@ -83,8 +83,8 @@ def myNetwork():
     r2.cmd("ip route add 172.16.1.2 via 10.0.2.3 dev r2-eth1") #ajout route serveur vers client DASH
     
     
-    r2.cmd("ip route add 172.16.0.1/24 via 10.0.1.1 dev r2-eth0 table 100") #Ajout d'une table pour PBR
-    r2.cmd("ip rule add from 172.16.1.2 table 100") #Ajout d'une rèlge pour diriger le trafic DASH
+    #r2.cmd("ip route add 172.16.0.1/24 via 10.0.1.1 dev r2-eth0 table 100") #Ajout d'une table pour PBR
+    #r2.cmd("ip rule add from 172.16.1.2 table 100") #Ajout d'une rèlge pour diriger le trafic DASH
 
     r3.cmd("ifconfig r3-eth2 0")
     r3.cmd("ip addr add 172.16.1.254/24 brd + dev r3-eth2")
@@ -98,7 +98,7 @@ def myNetwork():
     r3.cmd("ip addr add 172.16.1.253/24 dev r3-eth3") #ajout d'une interface pour l'IP secondaire DASH
     r3.cmd("ip link set r3-eth3 up")
     #r3.cmd("ip route add 172.16.1.2 via 172.16.1.253 dev r3-eth3") #connection r3-serveur sur IP DASH
-    r3.cmd("ip route add 172.16.0.1/24 via 10.0.2.2 dev r3-eth0 table 200") #Ajout d'une table pour PBR
+    r3.cmd("ip route add default via 10.0.2.2 dev r3-eth0 table 200") #Ajout d'une table pour PBR
     r3.cmd("ip rule add from 172.16.1.2 table 200") #Ajout d'une rèlge pour diriger le trafic DASH
 
     client.cmd("ip link set d1-eth0 up")
