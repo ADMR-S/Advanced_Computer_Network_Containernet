@@ -70,7 +70,7 @@ def myNetwork():
     r1.cmd("route add default gw 10.0.3.3 r1-eth1")
     r1.cmd("echo 1 >/proc/sys/net/ipv4/ip_forward")
 
-    r1.cmd("ip route add 172.16.1.2 via 10.0.1.1 dev r1-eth0") #ajout route client vers serveur DASH
+    r1.cmd("ip route add 172.16.1.2 via 10.0.1.2 dev r1-eth0") #ajout route client vers serveur DASH
 
     r2.cmd("ifconfig r2-eth0 0")
     r2.cmd("ip addr add 10.0.1.2/24 brd + dev r2-eth0")
@@ -80,11 +80,11 @@ def myNetwork():
     r2.cmd("route add -net 172.16.0.0/24 gw 10.0.1.1 r2-eth0")
     r2.cmd("echo 1 >/proc/sys/net/ipv4/ip_forward")
 
-    r2.cmd("ip route add 172.16.1.2 via 10.0.2.2 dev r2-eth1") #ajout route serveur vers client DASH
+    r2.cmd("ip route add 172.16.1.2 via 10.0.2.3 dev r2-eth1") #ajout route serveur vers client DASH
     
     
-    #r2.cmd("ip route add 172.16.0.1/24 via 10.0.1.2 dev r2-eth0 table 100") #Ajout d'une table pour PBR
-    #r2.cmd("ip rule add from 172.16.1.2 table 100") #Ajout d'une rèlge pour diriger le trafic DASH
+    r2.cmd("ip route add 172.16.0.1/24 via 10.0.1.1 dev r2-eth0 table 100") #Ajout d'une table pour PBR
+    r2.cmd("ip rule add from 172.16.1.2 table 100") #Ajout d'une rèlge pour diriger le trafic DASH
 
     r3.cmd("ifconfig r3-eth2 0")
     r3.cmd("ip addr add 172.16.1.254/24 brd + dev r3-eth2")
@@ -98,8 +98,8 @@ def myNetwork():
     r3.cmd("ip addr add 172.16.1.253/24 dev r3-eth3") #ajout d'une interface pour l'IP secondaire DASH
     r3.cmd("ip link set r3-eth3 up")
     #r3.cmd("ip route add 172.16.1.2 via 172.16.1.253 dev r3-eth3") #connection r3-serveur sur IP DASH
-    #r3.cmd("ip rule add from 172.16.1.2 table 200") #Ajout d'une rèlge pour diriger le trafic DASH
-    #r3.cmd("ip route add 172.16.0.1/24 via 10.0.2.3 dev r3-eth0 table 200") #Ajout d'une table pour PBR
+    r3.cmd("ip route add 172.16.0.1/24 via 10.0.2.2 dev r3-eth0 table 200") #Ajout d'une table pour PBR
+    r3.cmd("ip rule add from 172.16.1.2 table 200") #Ajout d'une rèlge pour diriger le trafic DASH
 
     client.cmd("ip link set d1-eth0 up")
     client.cmd("ip route add 172.16.1.0/24 via 172.16.0.254")
