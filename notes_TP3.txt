@@ -1,3 +1,5 @@
+start DASH streaming :
+        python3 AStream-master/dist/client/dash_client.py -m http://172.16.1.1/media/BigBuckBunny/4sec/BigBuckBunny_4s.mpd -p 'basic' -d
 
 
 Question 1 : Set up an SDN rule so that DASH video trac is handled separately from
@@ -10,13 +12,22 @@ sudo ovs-ofctl add-flow s3 ,in_port=1,actions=output:3
 sudo ovs-ofctl add-flow s3 ,in_port=3,actions=output:1
 sudo ovs-ofctl add-flow s1 ,in_port=1,actions=output:3
 
-sudo ovs-ofctl add-flow s1 priority=100,ip,nw_proto=6,tp_dst=80,in_port=3,actions=output:2
-sudo ovs-ofctl add-flow s2 priority=100,in_port=1,actions=output:2
-sudo ovs-ofctl add-flow s3 priority=100,in_port=2,actions=output:3
+DOESN'T WORK BUT SHOULD : 
 
-sudo ovs-ofctl add-flow s3 priority=100,ip,nw_proto=6,tp_src=80,in_port=3,actions=output:2
-sudo ovs-ofctl add-flow s2 priority=100,in_port=2,actions=output:1
-sudo ovs-ofctl add-flow s1 priority=100,in_port=2,actions=output:3
+sudo ovs-ofctl add-flow s1 dl_type=0x86dd,in_port=3,nw_proto=6,tp_dst=80,actions=output:2
+sudo ovs-ofctl add-flow s1 dl_type=0x86dd,in_port=3,nw_proto=6,tp_dst=443,actions=output:2
+sudo ovs-ofctl add-flow s1 dl_type=0x86dd,in_port=3,nw_proto=6,tp_dst=8080,actions=output:2
+sudo ovs-ofctl add-flow s1 dl_type=0x0800,in_port=3,nw_proto=6,tp_dst=80,actions=output:2
+sudo ovs-ofctl add-flow s1 dl_type=0x0800,in_port=3,nw_proto=6,tp_dst=443,actions=output:2
+sudo ovs-ofctl add-flow s1 dl_type=0x0800,in_port=3,nw_proto=6,tp_dst=8080,actions=output:2
+sudo ovs-ofctl add-flow s2 in_port=1,actions=output:2
+sudo ovs-ofctl add-flow s3 in_port=2,actions=output:3
 
-
-
+sudo ovs-ofctl add-flow s3 dl_type=0x86dd,in_port=3,nw_proto=6,tp_src=80,actions=output:2
+sudo ovs-ofctl add-flow s3 dl_type=0x86dd,in_port=3,nw_proto=6,tp_src=443,actions=output:2
+sudo ovs-ofctl add-flow s3 dl_type=0x86dd,in_port=3,nw_proto=6,tp_src=8080,actions=output:2
+sudo ovs-ofctl add-flow s3 dl_type=0x0800,in_port=3,nw_proto=6,tp_src=80,actions=output:2
+sudo ovs-ofctl add-flow s3 dl_type=0x0800,in_port=3,nw_proto=6,tp_src=443,actions=output:2
+sudo ovs-ofctl add-flow s3 dl_type=0x0800,in_port=3,nw_proto=6,tp_src=8080,actions=output:2
+sudo ovs-ofctl add-flow s2 in_port=2,actions=output:1
+sudo ovs-ofctl add-flow s1 in_port=2,actions=output:3

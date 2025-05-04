@@ -25,7 +25,7 @@ It's roughly similar to the one Brandon Heller did for NOX.
 from pox.core import core
 import pox.openflow.libopenflow_01 as of
 from pox.lib.util import dpid_to_str
-from pox.lib.packet import ethernet,ipv4,tcp
+from pox.lib.packet import ethernet,ipv4, ipv6,tcp
 from pox.lib.addresses import IPAddr, EthAddr
 
 log = core.getLogger()
@@ -51,6 +51,67 @@ class Tutorial (object):
     # which switch port (keys are MACs, values are ports).
     self.mac_to_port = {}
 
+  # AJOUT TP3
+  def http_via_s2(self, packet, packet_in):
+    dpid = dpid_to_str(self.connection.dpid)
+
+    if dpid == "00-00-00-00-00-01":
+      if packet_in.in_port == 3:
+        self.resend_packet(packet_in, 2)
+        msg = of.ofp_flow_mod()
+        msg.match.dl_type = packet.type
+        msg.match.in_port = 3
+        msg.match.nw_proto = 6
+        msg.match.tp_dst = 80
+        msg.match.dl_type = ethernet.IP_TYPE
+        msg.actions.append(of.ofp_action_output(port=2))
+        self.connection.send(msg)
+
+      elif packet_in.in_port == 2:
+        self.resend_packet(packet_in, 3)
+        msg = of.ofp_flow_mod()
+        msg.match.dl_type = packet.type
+        msg.match.in_port = 2
+        msg.match.nw_proto = 6
+        msg.match.tp_src = 80
+        msg.match.dl_type = ethernet.IP_TYPE
+        msg.actions.append(of.ofp_action_output(port=3))
+        self.connection.send(msg)
+
+      elif dpid == "00-00-00-00-00-02":
+        if packet_in.in_port == 1:
+          self.resend_packet(packet_in, 2)
+          msg = of.ofp_flow_mod()
+          msg.match.dl_type = packet.type
+          msg.match.in_port = 1
+          msg.actions.append(of.ofp_action_output(port=2))
+          self.connection.send(msg)
+
+        elif packet_in.in_port == 2:
+          self.resend_packet(packet_in, 1)
+          msg = of.ofp_flow_mod()
+          msg.match.dl_type = packet.type
+          msg.match.in_port = 2
+        
+          msg.actions.append(of.ofp_action_output(port=1))
+          self.connection.send(msg)
+        
+        elif dpid == "00-00-00-00-00-03":
+          if packet_in.in_port == 2:
+            self.resend_packet(packet_in, 3)
+            msg = of.ofp_flow_mod()
+            msg.match.dl_type = packet.type
+            msg.match.in_port = 2
+            msg.actions.append(of.ofp_action_output(port=3))
+            self.connection.send(msg)
+          
+          elif packet_in.in_port == 3:
+            self.resend_packet(packet_in, 2)
+            msg = of.ofp_flow_mod()
+            msg.match.dl_type = packet.type
+            msg.match.in_port = 3
+            msg.actions.append(of.ofp_action_output(port=2))
+            self.connection.send(msg)
 
   def resend_packet (self, packet_in, out_port):
     """
@@ -180,10 +241,22 @@ class Tutorial (object):
     http_pkt = 0 
     if packet.type == ethernet.IP_TYPE:
       ipv4_packet = packet.find("ipv4") 
-      if ipv4_packet.protocol == ipv4.TCP_PROTOCOL:
+      #Ajout TP3
+      if ipv4_packet is None:
+        ipv6_packet = packet.find("ipv6")
+        if ipv6_packet is None:
+          log.warning("Ignoring incomplete packet")
+          return
+        else :
+          if ipv6_packet.protocol == ipv6.TCP_PROTOCOL:
+            tcp_segment = ipv6_packet.find("tcp")
+            if tcp_segment.dstport == 80 or tcp_segment.srcport == 80 :
+              http_pkt = 1
+      elif ipv4_packet.protocol == ipv4.TCP_PROTOCOL:
         tcp_segment = ipv4_packet.find("tcp")
         if tcp_segment.dstport == 80 or tcp_segment.srcport == 80 :
           http_pkt = 1
+    print("HTTP packet: ", http_pkt)
     return http_pkt  
 
   def _handle_PacketIn (self, event):
@@ -204,7 +277,12 @@ class Tutorial (object):
     # when starting the exercise.
     #self.act_like_hub(packet, packet_in)
     #self.act_like_switch(packet, packet_in)
-    self.act_like_routers_in_legacy_case(packet, packet_in)
+
+    #MODIF TP3
+    if self.http_packet(packet):
+      self.http_via_s2(packet, packet_in)
+    else:
+      self.act_like_routers_in_legacy_case(packet, packet_in)
    
 def launch ():
   """
