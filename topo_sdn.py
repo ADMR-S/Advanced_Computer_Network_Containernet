@@ -34,7 +34,7 @@ def myNetwork():
     client = net.addDocker('client', ip='172.16.0.1/24', dimage="client-image")
     server = net.addDocker('server', ip='172.16.1.1/24', dimage="server-image",
                         ports=[80], port_bindings={80: 8080},
-                        volumes=["/home/student/containernet/custom/volumes/media:/var/www/html/media"])
+                        volumes=["/home/ADMR-S/Documents/Advanced_Computer_Networks/tp2/containernet/custom/volumes/media:/var/www/html/media"])
                         
     #h1 = net.addHost('h1', cls=Host, ip='10.0.1.1', defaultRoute=None)
     #h2 = net.addHost('h2', cls=Host, ip='10.0.2.1', defaultRoute=None)

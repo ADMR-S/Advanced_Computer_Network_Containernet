@@ -1,3 +1,0 @@
-2025-04-27 06:54:09,036 - dash_client.py:546 - INFO - Downloading MPD file http://172.16.1.1/media/BickBuckBunny/4sec/BigBuckBunny_4s.mpd
-2025-04-27 06:54:09,118 - dash_client.py:106 - ERROR - Unable to download MPD file HTTP Error: 404
-2025-04-27 06:54:09,119 - read_mpd.py:121 - INFO - Reading the MPD file
